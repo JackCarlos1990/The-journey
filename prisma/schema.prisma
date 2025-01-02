@@ -7,5 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// 在這裡添加您的數據模型
+// 基本用戶模型
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  level     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
