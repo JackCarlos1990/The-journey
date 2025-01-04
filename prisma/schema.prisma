@@ -1,43 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id        Int         @id @default(autoincrement())
-  username  String      @unique
-  email     String      @unique
-  password  String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  characters Character[]
+  id           String        @id @default(uuid())
+  username     String        @unique
+  password     String?
+  email        String        @unique
+  gameProgress GameProgress?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
-model Character {
-  id        Int      @id @default(autoincrement())
-  name      String
-  level     Int      @default(1)
-  experience Int     @default(0)
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  quests    Quest[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Quest {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String
-  reward      Int
-  isCompleted Boolean   @default(false)
-  characterId Int
-  character   Character @relation(fields: [characterId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+model GameProgress {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
+  level      Int      @default(1)
+  experience Int      @default(0)
+  equipment  String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
