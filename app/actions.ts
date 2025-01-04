@@ -11,7 +11,7 @@ interface GameProgress {
 
 export async function login(username: string, password: string) {
   const user = await prisma.user.findUnique({ where: { username } });
-  if (!user) {
+  if (!user || !user.password) {
     return { success: false, error: '帳號或密碼錯誤' };
   }
 
