@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { register } from '@/lib/actions'
+import { register } from '@/app/actions'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')

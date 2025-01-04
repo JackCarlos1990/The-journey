@@ -1,19 +1,72 @@
 'use server'
 
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
+
+interface GameProgress {
+  level: number;
+  experience: number;
+  equipment: string[];
+}
+
 export async function login(username: string, password: string) {
-  // 這裡應該有更安全的驗證邏輯，這只是一個簡單的示例
-  if (username === '1234' && password === '1234') {
-    return { success: true }
-  } else {
-    return { success: false, error: '帳號或密碼錯誤' }
+  const user = await prisma.user.findUnique({ where: { username } });
+  if (!user) {
+    return { success: false, error: '帳號或密碼錯誤' };
   }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return { success: false, error: '帳號或密碼錯誤' };
+  }
+
+  const gameProgress = await prisma.gameProgress.findUnique({ where: { userId: user.id } });
+  return { 
+    success: true, 
+    gameProgress: gameProgress || { level: 1, experience: 0, equipment: [] }
+  };
 }
 
 export async function register(username: string, password: string, email: string) {
-  // 這裡應該有實際的註冊邏輯
-  if (username && password && email) {
-    return { success: true }
+  const existingUser = await prisma.user.findFirst({
+    where: { OR: [{ username }, { email }] }
+  });
+
+  if (existingUser) {
+    return { success: false, error: '帳號或信箱已存在' };
   }
-  return { success: false, error: '註冊資料不完整' }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await prisma.user.create({
+    data: {
+      username,
+      password: hashedPassword,
+      email,
+      gameProgress: {
+        create: { level: 1, experience: 0, equipment: [] }
+      }
+    }
+  });
+
+  return { success: true };
+}
+
+export async function saveGameProgress(username: string, gameProgress: GameProgress) {
+  const user = await prisma.user.findUnique({ where: { username } });
+  if (!user) {
+    return { success: false, error: '用戶不存在' };
+  }
+
+  await prisma.gameProgress.update({
+    where: { userId: user.id },
+    data: gameProgress
+  });
+
+  return { success: true };
+}
+
+export async function logout(username: string, gameProgress: GameProgress) {
+  await saveGameProgress(username, gameProgress);
+  return { success: true };
 }
 
